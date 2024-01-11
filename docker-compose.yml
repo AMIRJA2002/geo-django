@@ -1,0 +1,37 @@
+services:
+  app:
+    build: .
+    container_name: 'geo-django'
+    restart: always
+    networks:
+      - main
+    ports:
+      - 8000:8000
+    volumes:
+      - .:/app
+      - static_volume:/app/static
+      - media_volume:/app/media
+
+  database:
+    image: postgres:16
+    container_name: geo_db
+    restart: always
+#    command: bash -c "apt-get update && apt-get upgrade -y && apt-get install -y binutils libproj-dev gdal-bin"
+    networks:
+      - main
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_DB=geo_db
+      - POSTGRES_USER=geo_user
+      - POSTGRES_PASSWORD=geo_pass
+    volumes:
+      - geodata:/var/lib/postgresql/data/
+
+volumes:
+  geodata:
+  static_volume:
+  media_volume:
+
+networks:
+  main:
