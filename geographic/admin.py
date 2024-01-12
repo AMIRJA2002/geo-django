@@ -1,15 +1,5 @@
 from django.contrib import admin
-from .models import Area, TehranArea, Public
-
-
-@admin.register(Area)
-class AreaAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'location', 'geo_fance')
-
-
-@admin.register(TehranArea)
-class TehranAreaAdmin(admin.ModelAdmin):
-    list_display = ('id', 'population', 'navahi', 'section', 'zone')
+from .models import Public
 
 
 @admin.register(Public)

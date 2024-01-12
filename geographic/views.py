@@ -3,11 +3,7 @@ from rest_framework import serializers
 from rest_framework.views import APIView
 from .models import Public
 from django.contrib.gis.geos import Point
-
-
-class CreateDatabaseData(APIView):
-    def get(self, request, *args, **kwargs):
-        return Response({'od': 'ok'})
+from pyproj import Transformer
 
 
 class SearchForZoneInformation(APIView):
@@ -18,17 +14,19 @@ class SearchForZoneInformation(APIView):
     class OutputSerializer(serializers.ModelSerializer):
         class Meta:
             model = Public
-            fields = '__all__'
+            exclude = ('wkb_geometry',)
 
     def get(self, request):
         data = self.InputSerializer(data=request.data)
         data.is_valid(raise_exception=True)
-        lat = data.validated_data.get('lat')
-        long = data.validated_data.get('long')
-        point = Point(x=lat, y=long, srid=32639)
-        public = Public.objects.filter(wkb_geometry__contains=point)
 
-        ser_data = self.OutputSerializer(public, many=True)
+        # Transformer point from 4326 to 32639
+        proj = Transformer.from_crs(4326, 32639)
+        x1, y1 = (data.validated_data.get('lat'), data.validated_data.get('long'))
+        x2, y2 = proj.transform(x1, y1)
+
+        point = Point(x=x2, y=y2, srid=32639)
+        poly = Public.objects.filter(wkb_geometry__contains=point)
+
+        ser_data = self.OutputSerializer(poly, many=True)
         return Response(ser_data.data)
-
-
